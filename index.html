@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Squid Game Dev Quiz</title>
+    <meta property="og:title" content="Which Squid Game Character Are You as a Developer?" />
+    <meta property="og:description"
+        content="Play this dev-themed Squid Game quiz and discover your inner tech avatar!" />
+    <meta property="og:image" content="thumbnail.png" />
+    <meta property="og:url" content="https://your-quiz-link.com" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles@3.3.0/tsparticles.bundle.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: radial-gradient(circle at center, #0a0a0a 30%, #000 100%);
+            color: #eee;
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Grainy overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: url('data:image/svg+xml;base64,…') repeat;
+            opacity: 0.04;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Guard mask watermark */
+        .guard-mask-bg {
+            position: absolute;
+            top: 15%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 320px;
+            opacity: 0.05;
+            pointer-events: none;
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            color: #fff;
+            text-shadow: 2px 2px 20px rgba(255, 0, 85, 0.7);
+            border: 4px solid #fff;
+            padding: 10px 20px;
+            border-radius: 10px;
+            background: #ff0055;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: #00ff99;
+            margin-bottom: 2rem;
+            opacity: 0;
+            animation: slideUp 1s ease-out 0.5s forwards;
+        }
+
+        .intro-screen {
+            text-align: center;
+            padding-top: 80px;
+            animation: fadeIn 2s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shapes-container {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 2rem 0;
+            opacity: 0;
+            animation: slideUp 1s ease-out 1s forwards;
+        }
+
+        .shape {
+            width: 60px;
+            height: 60px;
+            background: #fff;
+            border: 4px solid #ff0055;
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.6);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .circle {
+            border-radius: 50%;
+        }
+
+        .triangle {
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+        }
+
+        .shape:hover {
+            transform: scale(1.2) rotate(15deg);
+            box-shadow: 0 0 45px rgba(255, 0, 85, 0.8);
+        }
+
+        .start-btn {
+            background: #ff0055;
+            border: 4px solid #fff;
+            color: #fff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            padding: 15px 40px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.6);
+            opacity: 0;
+            animation: slideUp 1s ease-out 1.5s forwards;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.8);
+        }
+
+        .quiz-container,
+        .result-screen {
+            display: none;
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+        }
+
+        .progress-container {
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #ff0055, #00ff99);
+            transition: width 0.8s ease;
+        }
+
+        .question-number {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #00ff99;
+            margin-top: 0.5rem;
+        }
+
+        .question-card {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #ff0055;
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .question-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #fff;
+            border-left: 5px solid #ff0055;
+            padding-left: 15px;
+            margin-bottom: 1.5rem;
+        }
+
+        .options-container {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .option {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid transparent;
+            border-radius: 15px;
+            padding: 1rem 1.5rem;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .option::before {
+            content: '';
+            position: absolute;
+            left: -100%;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 0, 85, 0.2);
+            transition: left 0.5s ease;
+        }
+
+        .option:hover {
+            border-color: #ff0055;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 0, 85, 0.3);
+        }
+
+        .option:hover::before {
+            left: 100%;
+        }
+
+        .timer {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ff0055;
+            display: none;
+        }
+
+        .timer.active {
+            display: block;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        /* Result */
+        .result-screen {
+            text-align: center;
+            padding-top: 40px;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .character-card {
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid #ff0055;
+            border-radius: 25px;
+            padding: 2rem;
+            margin: 2rem 0;
+            backdrop-filter: blur(15px);
+            transform: scale(0);
+            animation: popIn 0.8s ease-out 0.5s forwards;
+        }
+
+        .masked-icon {
+            width: 120px;
+            height: 120px;
+            background: #fff;
+            color: #000;
+            border-radius: 50%;
+            font-size: 4rem;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .character-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            color: #00ff99;
+            margin-bottom: 0.5rem;
+        }
+
+        .character-role {
+            font-size: 1.3rem;
+            color: #ff0055;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .match-percentage {
+            font-size: 3rem;
+            color: #fff;
+            margin: 1rem 0;
+        }
+
+        .character-description {
+            font-size: 1.1rem;
+            color: #eee;
+            opacity: 0;
+            animation: typewriter 2s ease-out 1.5s forwards;
+            line-height: 1.6;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+
+        .action-btn {
+            background: #ff0055;
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 0, 85, 0.4);
+        }
+
+        .restart-btn {
+            background: #00ff99;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes popIn {
+            to {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes typewriter {
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @media (max-width:768px) {
+            .logo {
+                font-size: 2.5rem;
+            }
+
+            .subtitle {
+                font-size: 1.2rem;
+            }
+
+            .question-text {
+                font-size: 1.3rem;
+            }
+
+            .character-name {
+                font-size: 2rem;
+            }
+
+            .shape {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        #tsparticles {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            top: 0;
+            left: 0;
+            background: transparent;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="tsparticles"></div>
+    <div class="container">
+        <div class="intro-screen" id="introScreen">
+            <img src="guard-mask.png" class="guard-mask-bg" alt="Guard Mask" />
+            <h1 class="logo">SQUID GAME</h1>
+            <h2 class="subtitle">for Developers</h2>
+            <p style="font-size:1.2rem; margin-bottom:2rem; opacity:0; animation: slideUp 1s ease-out 1.2s forwards;">
+                Who are you in the Dev Arena?
+            </p>
+            <div class="shapes-container">
+                <div class="shape circle"></div>
+                <div class="shape triangle"></div>
+                <div class="shape square"></div>
+            </div>
+            <button class="start-btn" onclick="startQuiz()">ENTER THE GAME</button>
+            <div class="audio-visualizer" id="audioVisualizer" style="display:none;"></div>
+        </div>
+
+        <div class="quiz-container" id="quizContainer">
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="question-number" id="questionNumber">Question 1 of 8</div>
+            </div>
+            <div class="question-card">
+                <div class="question-text" id="questionText"></div>
+                <div class="options-container" id="optionsContainer"></div>
+            </div>
+            <div class="timer" id="timer"></div>
+        </div>
+
+        <div class="result-screen" id="resultScreen">
+            <h2>GAME COMPLETE</h2>
+            <div class="character-card">
+                <div class="masked-icon" id="characterIcon">🎭</div>
+                <div class="character-name" id="characterName"></div>
+                <div class="character-role" id="characterRole"></div>
+                <div class="match-percentage" id="matchPercentage">0%</div>
+                <div class="character-description" id="characterDescription"></div>
+            </div>
+            <div class="action-buttons">
+                <button class="action-btn" onclick="shareResult()">📤 SHARE RESULT</button>
+                <button class="action-btn restart-btn" onclick="restartQuiz()">🔄 PLAY AGAIN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio -->
+    <audio id="gameAudio" loop src="squid_game.wav"></audio>
+    <button id="audioBtn"
+        style="position: fixed; bottom:20px; right:20px; padding:10px; background:#000; color:#ff0055; border:2px solid #ff0055; border-radius:50%;"
+        onclick="toggleAudio()">🔇</button>
+
+
+    <script>
+        const questions = [
+            {
+                question: "When you encounter a critical bug in production, what's your first move?",
+                options: [
+                    { text: "Panic and immediately start fixing without planning", character: "gihun" },
+                    { text: "Systematically analyze the issue and create a strategic fix", character: "sangwoo" },
+                    { text: "Stay calm and quietly work on a solution", character: "saebyeok" },
+                    { text: "Take control and coordinate the team's response", character: "frontman" }
+                ]
+            },
+            {
+                question: "Your preferred coding environment is:",
+                options: [
+                    { text: "Chaotic but creative - multiple monitors, snacks everywhere", character: "gihun" },
+                    { text: "Perfectly organized with premium tools and setup", character: "sangwoo" },
+                    { text: "Minimal and efficient - just what you need", character: "saebyeok" },
+                    { text: "High-end everything - the best money can buy", character: "frontman" }
+                ]
+            },
+            {
+                question: "When working in a team, you usually:",
+                options: [
+                    { text: "Try to help everyone, even if it slows you down", character: "gihun" },
+                    { text: "Focus on what benefits you and your goals most", character: "sangwoo" },
+                    { text: "Work independently but share when necessary", character: "saebyeok" },
+                    { text: "Lead and make sure everyone follows your vision", character: "frontman" }
+                ]
+            },
+            {
+                question: "Your approach to learning new technologies:",
+                options: [
+                    { text: "Jump in headfirst and learn by making mistakes", character: "gihun" },
+                    { text: "Research thoroughly and choose only the most valuable skills", character: "sangwoo" },
+                    { text: "Learn what's necessary to survive and advance", character: "saebyeok" },
+                    { text: "Master everything to maintain your position", character: "frontman" }
+                ]
+            },
+            {
+                question: "During code reviews, you:",
+                options: [
+                    { text: "Try to be encouraging and helpful to junior developers", character: "gihun" },
+                    { text: "Point out flaws strategically to show your expertise", character: "sangwoo" },
+                    { text: "Give honest, direct feedback without drama", character: "saebyeok" },
+                    { text: "Set high standards and expect perfection", character: "frontman" }
+                ]
+            },
+            {
+                question: "Your biggest motivation for coding is:",
+                options: [
+                    { text: "The joy of creating something that helps people", character: "gihun" },
+                    { text: "Recognition, career advancement, and financial success", character: "sangwoo" },
+                    { text: "Independence and the ability to support yourself", character: "saebyeok" },
+                    { text: "Power and control over complex systems", character: "frontman" }
+                ]
+            },
+            {
+                question: "When facing an impossible deadline:",
+                options: [
+                    { text: "Work overtime and stress out but try to deliver", character: "gihun" },
+                    { text: "Negotiate smartly or find ways to make others do the work", character: "sangwoo" },
+                    { text: "Focus on the most critical features and deliver those", character: "saebyeok" },
+                    { text: "Restructure the entire project to meet your timeline", character: "frontman" }
+                ]
+            },
+            {
+                question: "Your ideal career outcome is:",
+                options: [
+                    { text: "Working on meaningful projects with good people", character: "gihun" },
+                    { text: "Becoming a successful tech executive or entrepreneur", character: "sangwoo" },
+                    { text: "Achieving financial stability and personal freedom", character: "saebyeok" },
+                    { text: "Running your own tech empire", character: "frontman" }
+                ]
+            }
+        ];
+
+        const characters = {
+            gihun: {
+                name: "GI-HUN",
+                role: "The Hopeful Developer",
+                description: "You're the heart of every dev team. Despite setbacks and bugs, you maintain optimism and genuinely care about your colleagues. You might not always have the cleanest code, but your compassion and determination make you invaluable. You code with your heart.",
+                icon: "😊",
+                percentage: 95
+            },
+            sangwoo: {
+                name: "SANG-WOO",
+                role: "The Strategic Architect",
+                description: "You're brilliant and calculated. Every line of code serves a purpose in your master plan. You know how to play the corporate game and aren't afraid to make tough decisions. Your solutions are elegant, but your methods can be ruthless.",
+                icon: "🧠",
+                percentage: 92
+            },
+            saebyeok: {
+                name: "SAE-BYEOK",
+                role: "The Survivor Coder",
+                description: "You're resourceful and pragmatic. You write code that works under any conditions and never breaks. You don't need the fanciest tools - you make magic happen with whatever you have. You're the definition of efficient and reliable.",
+                icon: "⚡",
+                percentage: 88
+            },
+            frontman: {
+                name: "FRONT MAN",
+                role: "The System Administrator",
+                description: "You control the entire stack. Every service, every deployment, every user permission goes through you. You maintain order in the chaos of development. Others might fear your authority, but they respect your ability to keep everything running perfectly.",
+                icon: "🎭",
+                percentage: 98
+            }
+        };
+
+        let currentQuestion = 0;
+        let scores = { gihun: 0, sangwoo: 0, saebyeok: 0, frontman: 0 };
+        let timeLeft = 15;
+        let timer;
+        let gameAudio;
+        let isAudioPlaying = false;
+
+        // Initialize audio element
+        function initializeAudio() {
+            gameAudio = document.getElementById('gameAudio');
+            gameAudio.volume = 0.3; // Set volume to 30% to not be too loud
+
+            // Handle audio loading errors
+            gameAudio.addEventListener('error', function (e) {
+                console.log('Audio failed to load:', e);
+                // Fallback - hide audio controls if file doesn't exist
+                document.querySelector('.audio-controls').style.display = 'none';
+            });
+
+            // Handle successful audio loading
+            gameAudio.addEventListener('canplaythrough', function () {
+                console.log('Audio loaded successfully');
+            });
+        }
+
+        function toggleAudio() {
+            const audioBtn = document.getElementById('audioBtn');
+            const visualizer = document.getElementById('audioVisualizer');
+
+            if (!gameAudio) {
+                initializeAudio();
+            }
+
+            if (isAudioPlaying) {
+                // Stop audio
+                gameAudio.pause();
+                isAudioPlaying = false;
+                audioBtn.textContent = '🔇';
+                audioBtn.classList.add('muted');
+                visualizer.classList.remove('active');
+            } else {
+                // Start audio
+                gameAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    audioBtn.textContent = '🔊';
+                    audioBtn.classList.remove('muted');
+                    visualizer.classList.add('active');
+                }).catch(error => {
+                    console.log('Audio play failed:', error);
+                    // Handle autoplay restrictions
+                    alert('Click the audio button to enable background music!');
+                });
+            }
+        }
+
+        function startQuiz() {
+            // Initialize audio when game starts
+            initializeAudio();
+
+            // Auto-start music when game begins (with user gesture)
+            if (!isAudioPlaying) {
+                toggleAudio();
+            }
+
+            gsap.to("#introScreen", {
+                duration: 0.5, opacity: 0, y: -50, onComplete: () => {
+                    document.getElementById('introScreen').style.display = 'none';
+                    document.getElementById('quizContainer').style.display = 'block';
+                    gsap.fromTo("#quizContainer", { opacity: 0, y: 50 }, { duration: 0.5, opacity: 1, y: 0 });
+                    showQuestion();
+                }
+            });
+        }
+
+        function showQuestion() {
+            const question = questions[currentQuestion];
+            document.getElementById('questionText').textContent = question.question;
+            document.getElementById('questionNumber').textContent = `Question ${currentQuestion + 1} of ${questions.length}`;
+
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = '';
+
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.textContent = option.text;
+                optionElement.onclick = () => selectOption(option.character);
+
+                gsap.fromTo(optionElement,
+                    { opacity: 0, x: -30 },
+                    { duration: 0.3, opacity: 1, x: 0, delay: index * 0.1 }
+                );
+
+                container.appendChild(optionElement);
+            });
+
+            // Start timer for extra tension
+            startTimer();
+        }
+
+        function startTimer() {
+            timeLeft = 15;
+            const timerElement = document.getElementById('timer');
+            timerElement.classList.add('active');
+
+            timer = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = `⏰ ${timeLeft}`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    // Auto-select random option if time runs out
+                    const randomIndex = Math.floor(Math.random() * questions[currentQuestion].options.length);
+                    selectOption(questions[currentQuestion].options[randomIndex].character);
+                }
+            }, 1000);
+        }
+
+        function selectOption(character) {
+            clearInterval(timer);
+            document.getElementById('timer').classList.remove('active');
+
+            scores[character]++;
+
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+
+                gsap.to("#quizContainer", {
+                    duration: 0.3, opacity: 0, x: -30, onComplete: () => {
+                        gsap.fromTo("#quizContainer", { opacity: 0, x: 30 }, { duration: 0.3, opacity: 1, x: 0 });
+                        showQuestion();
+                    }
+                });
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            const winner = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
+            const character = characters[winner];
+
+            gsap.to("#quizContainer", {
+                duration: 0.5, opacity: 0, y: -50, onComplete: () => {
+                    document.getElementById('quizContainer').style.display = 'none';
+                    document.getElementById('resultScreen').style.display = 'block';
+
+                    document.getElementById('characterName').textContent = character.name;
+                    document.getElementById('characterRole').textContent = character.role;
+                    document.getElementById('characterDescription').textContent = character.description;
+                    document.getElementById('characterIcon').textContent = character.icon;
+
+                    gsap.fromTo("#resultScreen", { opacity: 0, y: 50 }, { duration: 0.5, opacity: 1, y: 0 });
+
+                    // Animate percentage counter
+                    setTimeout(() => {
+                        let count = 0;
+                        const target = character.percentage;
+                        const counter = setInterval(() => {
+                            count += 2;
+                            if (count >= target) {
+                                count = target;
+                                clearInterval(counter);
+                            }
+                            document.getElementById('matchPercentage').textContent = count + '%';
+                        }, 30);
+                    }, 2500);
+                }
+            });
+        }
+
+        function shareResult() {
+            const character = document.getElementById('characterName').textContent;
+            const role = document.getElementById('characterRole').textContent;
+            const percentage = document.getElementById('matchPercentage').textContent;
+
+            const shareText = `I just discovered I'm ${character} - ${role} with ${percentage} match in the Squid Game for Developers quiz! 🎮👨‍💻`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Squid Game for Developers Result',
+                    text: shareText,
+                    url: window.location.href
+                });
+            } else {
+                // Fallback - copy to clipboard
+                navigator.clipboard.writeText(shareText + ' ' + window.location.href).then(() => {
+                    alert('Result copied to clipboard! Share it with your dev friends! 🚀');
+                });
+            }
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            scores = { gihun: 0, sangwoo: 0, saebyeok: 0, frontman: 0 };
+
+            // Stop music when restarting
+            if (isAudioPlaying && gameAudio) {
+                gameAudio.pause();
+                isAudioPlaying = false;
+                document.getElementById('audioBtn').textContent = '🔇';
+                document.getElementById('audioBtn').classList.add('muted');
+                document.getElementById('audioVisualizer').classList.remove('active');
+            }
+
+            gsap.to("#resultScreen", {
+                duration: 0.5, opacity: 0, y: 50, onComplete: () => {
+                    document.getElementById('resultScreen').style.display = 'none';
+                    document.getElementById('introScreen').style.display = 'block';
+                    gsap.fromTo("#introScreen", { opacity: 0, y: -50 }, { duration: 0.5, opacity: 1, y: 0 });
+                }
+            });
+        }
+
+        // Add some interactive effects to shapes
+        document.querySelectorAll('.shape').forEach(shape => {
+            shape.addEventListener('click', () => {
+                gsap.to(shape, { duration: 0.3, rotation: 360, scale: 1.5, yoyo: true, repeat: 1 });
+            });
+        });
+
+        // Add keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('quizContainer').style.display === 'block') {
+                const options = document.querySelectorAll('.option');
+                if (e.key >= '1' && e.key <= '4' && options[e.key - 1]) {
+                    options[e.key - 1].click();
+                }
+            }
+        });
+
+        tsParticles.load("tsparticles", {
+            background: {
+                color: {
+                    value: "transparent"
+                }
+            },
+            fullScreen: {
+                enable: false
+            },
+            particles: {
+                number: {
+                    value: 50,
+                    density: {
+                        enable: true,
+                        area: 800
+                    }
+                },
+                shape: {
+                    type: ["circle", "square", "polygon"],
+                    options: {
+                        polygon: {
+                            sides: 3 // triangle
+                        }
+                    }
+                },
+                color: {
+                    value: ["#ff0055", "#ffffff", "#00ff99"]
+                },
+                size: {
+                    value: { min: 10, max: 20 }
+                },
+                move: {
+                    enable: true,
+                    speed: 1,
+                    direction: "none",
+                    outModes: "bounce"
+                },
+                opacity: {
+                    value: 0.3
+                },
+                rotate: {
+                    value: {
+                        min: 0,
+                        max: 360
+                    },
+                    animation: {
+                        enable: true,
+                        speed: 5
+                    }
+                },
+                links: {
+                    enable: false
+                }
+            },
+            interactivity: {
+                events: {
+                    onHover: {
+                        enable: true,
+                        mode: "repulse"
+                    },
+                    onClick: {
+                        enable: true,
+                        mode: "push"
+                    },
+                    resize: true
+                },
+                modes: {
+                    repulse: {
+                        distance: 100,
+                        duration: 0.4
+                    },
+                    push: {
+                        quantity: 2
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
